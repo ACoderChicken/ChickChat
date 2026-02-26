@@ -1,0 +1,16 @@
+[
+  {
+    "from": "1000",
+    "ts": 1772049295762,
+    "read": true,
+    "type": "text",
+    "text": "a"
+  },
+  {
+    "from": "1000",
+    "ts": 1772049341734,
+    "read": false,
+    "type": "text",
+    "text": "ddd"
+  }
+]

@@ -1,0 +1,51 @@
+[
+  {
+    "from": "1111",
+    "ts": 1772117430668,
+    "read": true,
+    "type": "text",
+    "text": "Ömrüm"
+  },
+  {
+    "from": "4380",
+    "ts": 1772117435494,
+    "read": true,
+    "type": "text",
+    "text": "efendiin"
+  },
+  {
+    "from": "4380",
+    "ts": 1772117437452,
+    "read": true,
+    "type": "text",
+    "text": "m"
+  },
+  {
+    "from": "1111",
+    "ts": 1772117443243,
+    "read": true,
+    "type": "text",
+    "text": "Vaysss"
+  },
+  {
+    "from": "4380",
+    "ts": 1772117448242,
+    "read": true,
+    "type": "image",
+    "imageUrl": "/uploads/509e73b2f47bf9155944fe09.png"
+  },
+  {
+    "from": "1111",
+    "ts": 1772117449783,
+    "read": true,
+    "type": "text",
+    "text": "Aferin"
+  },
+  {
+    "from": "4380",
+    "ts": 1772117541892,
+    "read": false,
+    "type": "image",
+    "imageUrl": "/uploads/eb4445697f5de23dd59c1b49.png"
+  }
+]

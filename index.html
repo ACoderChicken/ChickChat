@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ChickChat">
+<meta name="theme-color" content="#075e54">
+<title>ChickChat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green:#25d366;--green-dark:#128c7e;--teal:#075e54;
+    --bg-app:#f0f2f5;--bg-sidebar:#fff;--bg-chat:#efeae2;
+    --bg-header:#f0f2f5;--bg-input:#fff;
+    --bg-msg-in:#fff;--bg-msg-out:#dcf8c6;
+    --bg-hover:#f5f6f6;--bg-active:#ebebeb;
+    --bg-modal:rgba(0,0,0,.4);--bg-modal-box:#fff;--bg-search:#f0f2f5;
+    --text-primary:#111b21;--text-secondary:#667781;--text-green:#25d366;
+    --border:#e9edef;--shadow:rgba(0,0,0,.13);
+    --chat-bg:url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='30' cy='30' r='1.5' fill='%23c8d5d9' opacity='0.4'/%3E%3C/svg%3E");
+  }
+  [data-theme="dark"]{
+    --bg-app:#111b21;--bg-sidebar:#111b21;--bg-chat:#0b141a;
+    --bg-header:#202c33;--bg-input:#2a3942;
+    --bg-msg-in:#202c33;--bg-msg-out:#005c4b;
+    --bg-hover:#202c33;--bg-active:#2a3942;
+    --bg-modal:rgba(0,0,0,.6);--bg-modal-box:#233138;--bg-search:#2a3942;
+    --text-primary:#e9edef;--text-secondary:#8696a0;--text-green:#00a884;
+    --border:#2a3942;--shadow:rgba(0,0,0,.4);
+    --chat-bg:url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='30' cy='30' r='1.5' fill='%23fff' opacity='0.03'/%3E%3C/svg%3E");
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:'Nunito',sans-serif;background:var(--bg-app);color:var(--text-primary);height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:pan-x pan-y}
+
+  /* LOGIN */
+  #login-screen{width:100vw;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(160deg,var(--teal) 0%,#128c7e 50%,#25d366 100%);gap:28px}
+  .login-logo{display:flex;flex-direction:column;align-items:center;gap:12px}
+  .login-logo h1{font-size:2.4rem;font-weight:700;color:#fff;letter-spacing:1px}
+  .login-logo p{color:rgba(255,255,255,.8);font-size:1rem}
+  .login-card{background:#fff;border-radius:20px;padding:36px 40px;box-shadow:0 20px 60px rgba(0,0,0,.25);display:flex;flex-direction:column;align-items:center;gap:18px;width:min(340px,90vw)}
+  .login-card h2{color:#111b21;font-size:1.2rem;font-weight:700}
+  .login-card p{color:#667781;font-size:.88rem;text-align:center;line-height:1.5}
+  .login-card input{width:100%;padding:14px 16px;border:2px solid #e9edef;border-radius:12px;font-size:1.5rem;font-family:'Nunito',sans-serif;font-weight:700;text-align:center;letter-spacing:12px;color:#111b21;outline:none;transition:border-color .2s}
+  .login-card input:focus{border-color:#25d366}
+  #login-error{color:#ff3b30;font-size:.82rem;text-align:center;min-height:18px}
+  .login-btn{width:100%;padding:13px;background:linear-gradient(135deg,#25d366,#128c7e);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;transition:opacity .2s}
+  .login-btn:active{opacity:.85}
+  @keyframes shk{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}60%{transform:translateX(8px)}}
+
+  /* APP */
+  #app{width:100vw;height:100vh;display:none;overflow:hidden}
+  #app.visible{display:flex}
+
+  /* SIDEBAR */
+  #sidebar{width:380px;min-width:280px;height:100%;background:var(--bg-sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+  .sidebar-header{background:var(--bg-header);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;height:60px;flex-shrink:0}
+  .user-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#25d366,#128c7e);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:1rem;cursor:pointer;user-select:none}
+  .header-actions{display:flex;gap:8px}
+  .icon-btn{width:40px;height:40px;border-radius:50%;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
+  .icon-btn:hover{background:var(--bg-hover)}
+  .icon-btn svg{width:22px;height:22px;fill:var(--text-secondary)}
+  .sidebar-search{padding:8px 12px;background:var(--bg-sidebar);flex-shrink:0}
+  .search-wrap{background:var(--bg-search);border-radius:10px;display:flex;align-items:center;padding:0 12px;gap:8px}
+  .search-wrap svg{fill:var(--text-secondary);width:18px;height:18px;flex-shrink:0}
+  .search-wrap input{flex:1;padding:9px 0;border:none;background:transparent;font-family:'Nunito',sans-serif;font-size:.93rem;color:var(--text-primary);outline:none}
+  .search-wrap input::placeholder{color:var(--text-secondary)}
+  #chat-list{flex:1;overflow-y:auto;overflow-x:hidden}
+  #chat-list::-webkit-scrollbar{width:6px}
+  #chat-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+  .chat-item{display:flex;align-items:center;padding:12px 16px;gap:12px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .12s}
+  .chat-item:hover,.chat-item:active{background:var(--bg-hover)}
+  .chat-item.active{background:var(--bg-active)}
+  .chat-avatar{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:1.15rem;flex-shrink:0}
+  .chat-info{flex:1;min-width:0}
+  .chat-name{font-weight:600;font-size:.97rem;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .chat-preview{font-size:.83rem;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;display:flex;align-items:center;gap:3px}
+  .chat-meta{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+  .chat-time{font-size:.75rem;color:var(--text-secondary)}
+  .unread-badge{background:var(--green);color:#fff;border-radius:10px;padding:1px 7px;font-size:.72rem;font-weight:700;min-width:18px;text-align:center}
+  .empty-state{padding:40px 20px;text-align:center;color:var(--text-secondary);font-size:.9rem}
+
+  /* MAIN CHAT */
+  #main-chat{flex:1;display:flex;flex-direction:column;height:100%;background:var(--bg-chat);position:relative}
+  #main-chat::before{content:'';position:absolute;inset:0;background-image:var(--chat-bg);opacity:.5;pointer-events:none;z-index:0}
+  #welcome-screen{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;position:relative;z-index:1}
+  #welcome-screen h2{font-size:1.5rem;color:var(--text-secondary);font-weight:600}
+  #welcome-screen p{color:var(--text-secondary);font-size:.9rem}
+  #chat-header{background:var(--bg-header);padding:10px 16px;display:flex;align-items:center;gap:12px;height:60px;flex-shrink:0;position:relative;z-index:2;border-bottom:1px solid var(--border)}
+  #chat-header .chat-avatar{width:42px;height:42px;font-size:1rem}
+  #chat-header .chat-info{flex:1}
+  #chat-header .chat-name{font-size:1rem;font-weight:600;color:var(--text-primary)}
+  #chat-header .chat-status{font-size:.78rem;color:var(--text-secondary)}
+  #messages-area{flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:4px;position:relative;z-index:1}
+  #messages-area::-webkit-scrollbar{width:6px}
+  #messages-area::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:3px}
+
+  /* BUBBLES */
+  .msg-bubble{max-width:68%;padding:7px 12px 4px;border-radius:12px;word-break:break-word;box-shadow:0 1px 2px var(--shadow)}
+  .msg-in {align-self:flex-start;background:var(--bg-msg-in); border-top-left-radius:3px; color:var(--text-primary)}
+  .msg-out{align-self:flex-end;  background:var(--bg-msg-out);border-top-right-radius:3px;color:var(--text-primary)}
+  .msg-text{font-size:.93rem;line-height:1.45}
+  .msg-img{max-width:260px;max-height:220px;border-radius:8px;display:block;cursor:pointer;margin-bottom:2px;object-fit:cover;width:100%}
+  .msg-footer{display:flex;justify-content:flex-end;align-items:center;gap:4px;margin-top:2px}
+  .msg-time{font-size:.68rem;color:var(--text-secondary)}
+  .tick{display:inline-flex;align-items:center}
+  .tick svg{width:16px;height:16px}
+  .tick.sent svg{fill:#8696a0}
+  .tick.read svg{fill:#53bdeb}
+  .date-divider{align-self:center;background:var(--bg-msg-in);color:var(--text-secondary);font-size:.75rem;padding:4px 12px;border-radius:8px;box-shadow:0 1px 2px var(--shadow);margin:8px 0}
+
+  /* INPUT AREA */
+  #msg-input-area{background:var(--bg-header);padding:8px 16px;display:flex;align-items:flex-end;gap:8px;flex-shrink:0;position:relative;z-index:2}
+  #msg-input-wrap{flex:1;background:var(--bg-input);border-radius:24px;padding:9px 16px;display:flex;align-items:center;gap:10px;min-height:48px}
+  #msg-input{flex:1;border:none;background:transparent;font-family:'Nunito',sans-serif;font-size:.95rem;color:var(--text-primary);outline:none;resize:none;max-height:120px;line-height:1.45}
+  #msg-input::placeholder{color:var(--text-secondary)}
+  #img-btn{background:none;border:none;cursor:pointer;display:flex;align-items:center;padding:0;flex-shrink:0}
+  #img-btn svg{width:22px;height:22px;fill:var(--text-secondary);transition:fill .15s}
+  #img-btn:hover svg{fill:var(--text-green)}
+  #file-input{display:none}
+  #send-btn{width:48px;height:48px;border-radius:50%;background:var(--green);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s,transform .1s}
+  #send-btn:hover{background:var(--green-dark)}
+  #send-btn:active{transform:scale(.93)}
+  #send-btn svg{fill:#fff;width:22px;height:22px}
+  #img-preview-bar{display:none;padding:6px 16px;background:var(--bg-header);border-top:1px solid var(--border);align-items:center;gap:10px;position:relative;z-index:2;flex-shrink:0}
+  #img-preview-bar img{height:60px;border-radius:8px;object-fit:cover}
+  .cancel-img{background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:1.3rem;line-height:1}
+  .cancel-img:hover{color:#ff3b30}
+
+  /* MODALS */
+  .modal-overlay{position:fixed;inset:0;background:var(--bg-modal);z-index:1000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+  .modal-overlay.open{display:flex}
+  .modal-box{background:var(--bg-modal-box);border-radius:18px;padding:28px 32px;box-shadow:0 24px 60px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:20px;animation:scaleIn .2s ease;width:min(420px,92vw)}
+  @keyframes scaleIn{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+  .modal-header{display:flex;align-items:center;justify-content:space-between}
+  .modal-header h2{font-size:1.2rem;font-weight:700;color:var(--text-primary)}
+  .close-btn{width:34px;height:34px;border-radius:50%;border:none;background:var(--bg-hover);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);font-size:1.2rem;transition:background .15s}
+  .close-btn:hover{background:var(--bg-active)}
+  #new-chat-modal .modal-box p{font-size:.85rem;color:var(--text-secondary)}
+  #new-chat-modal .modal-box input{width:100%;padding:14px 16px;border:2px solid var(--border);border-radius:12px;font-size:1.5rem;font-family:'Nunito',sans-serif;font-weight:700;text-align:center;letter-spacing:12px;color:var(--text-primary);background:var(--bg-input);outline:none;transition:border-color .2s}
+  #new-chat-modal .modal-box input:focus{border-color:var(--green)}
+  #new-chat-error{color:#ff3b30;font-size:.82rem;text-align:center;min-height:18px}
+  .modal-actions{display:flex;gap:10px}
+  .btn-cancel{flex:1;padding:12px;background:var(--bg-hover);border:none;border-radius:12px;font-family:'Nunito',sans-serif;font-weight:700;font-size:.93rem;color:var(--text-secondary);cursor:pointer;transition:background .15s}
+  .btn-cancel:hover{background:var(--bg-active)}
+  .btn-start{flex:1;padding:12px;background:var(--green);border:none;border-radius:12px;font-family:'Nunito',sans-serif;font-weight:700;font-size:.93rem;color:#fff;cursor:pointer;transition:background .15s}
+  .btn-start:hover{background:var(--green-dark)}
+  .settings-section{display:flex;flex-direction:column;gap:14px}
+  .settings-label{font-size:.78rem;font-weight:700;color:var(--text-green);text-transform:uppercase;letter-spacing:.8px}
+  .settings-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg-hover);border-radius:12px}
+  .settings-row-left{display:flex;flex-direction:column;gap:2px}
+  .settings-row-title{font-weight:600;font-size:.95rem;color:var(--text-primary)}
+  .settings-row-sub{font-size:.8rem;color:var(--text-secondary)}
+  .toggle{position:relative;width:48px;height:26px;cursor:pointer}
+  .toggle input{opacity:0;width:0;height:0}
+  .toggle-track{position:absolute;inset:0;background:var(--border);border-radius:13px;transition:background .2s}
+  .toggle input:checked + .toggle-track{background:var(--green)}
+  .toggle-thumb{position:absolute;width:20px;height:20px;background:#fff;border-radius:50%;top:3px;left:3px;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+  .toggle input:checked ~ .toggle-thumb{transform:translateX(22px)}
+  .danger-btn{padding:11px;background:transparent;border:2px solid #ff3b30;border-radius:12px;color:#ff3b30;font-family:'Nunito',sans-serif;font-weight:700;font-size:.93rem;cursor:pointer;width:100%;transition:background .15s}
+  .danger-btn:hover{background:rgba(255,59,48,.08)}
+
+  /* Lightbox */
+  #lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:2000;align-items:center;justify-content:center;cursor:zoom-out}
+  #lightbox.open{display:flex}
+  #lightbox img{max-width:90vw;max-height:90vh;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.6)}
+
+  .animated{animation-duration:.22s;animation-fill-mode:both}
+  .fade-in{animation-name:fadeIn}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  .no-anim *{animation:none !important;transition:none !important}
+  .spinner{display:inline-block;width:14px;height:14px;border:2px solid transparent;border-top-color:currentColor;border-radius:50%;animation:spin .6s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ── Toast bildirimi (Safari + sayfa açıkken) ── */
+  #toast-container{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:3000;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;width:min(360px,92vw)}
+  .toast{background:var(--bg-modal-box);border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.22);padding:12px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;pointer-events:all;animation:toastIn .3s cubic-bezier(.34,1.56,.64,1);width:100%;border-left:4px solid var(--green)}
+  .toast.hiding{animation:toastOut .25s ease forwards}
+  @keyframes toastIn{from{opacity:0;transform:translateY(-18px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+  @keyframes toastOut{to{opacity:0;transform:translateY(-14px) scale(.95)}}
+  .toast-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.95rem;flex-shrink:0}
+  .toast-body{flex:1;min-width:0}
+  .toast-title{font-weight:700;font-size:.88rem;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .toast-text{font-size:.82rem;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+  .toast-close{background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:1.1rem;padding:2px 4px;flex-shrink:0;line-height:1}
+
+  @media(max-width:700px){
+    #sidebar{width:100%}
+    #main-chat{display:none}
+    #main-chat.mobile-visible{display:flex;position:fixed;inset:0;z-index:500}
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-logo">
+    <svg width="72" height="72" viewBox="0 0 72 72"><circle cx="36" cy="36" r="36" fill="rgba(255,255,255,0.15)"/><text x="36" y="48" font-size="38" text-anchor="middle" fill="white">🐥</text></svg>
+    <h1>ChickChat</h1>
+    <p>Küçük mesajlar, büyük bağlantılar.</p>
+  </div>
+  <div class="login-card">
+    <h2>Giriş Yap</h2>
+    <p>4 haneli benzersiz numaranı gir.</p>
+    <input type="number" id="login-input" placeholder="----" min="1000" max="9999" inputmode="numeric">
+    <div id="login-error"></div>
+    <button class="login-btn" id="login-btn" onclick="doLogin()">Giriş Yap →</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div id="sidebar">
+    <div class="sidebar-header">
+      <div class="user-avatar" id="my-avatar" onclick="openSettings()">?</div>
+      <div class="header-actions">
+        <button class="icon-btn" title="Yeni Sohbet" onclick="openNewChatModal()">
+          <svg viewBox="0 0 24 24"><path d="M19 11h-6V5h-2v6H5v2h6v6h2v-6h6z"/></svg>
+        </button>
+        <button class="icon-btn" title="Ayarlar" onclick="openSettings()">
+          <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="sidebar-search">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        <input type="text" id="search-input" placeholder="Sohbet ara..." oninput="filterChats()">
+      </div>
+    </div>
+    <div id="chat-list">
+      <div class="empty-state" id="empty-state">Henüz sohbet yok.<br>+ ile yeni sohbet başlat!</div>
+    </div>
+  </div>
+
+  <div id="main-chat">
+    <div id="welcome-screen">
+      <svg width="140" height="140" viewBox="0 0 140 140" style="opacity:.12"><circle cx="70" cy="70" r="70" fill="var(--text-secondary)"/><text x="70" y="92" font-size="72" text-anchor="middle">🐥</text></svg>
+      <h2>ChickChat</h2>
+      <p>Sol taraftan bir sohbet seç ya da + ile yenisini başlat.</p>
+    </div>
+    <div id="active-chat" style="display:none;flex-direction:column;height:100%;position:relative;z-index:1;">
+      <div id="chat-header">
+        <div class="chat-avatar" id="chat-hdr-avatar">?</div>
+        <div class="chat-info">
+          <div class="chat-name" id="chat-hdr-name">-</div>
+          <div class="chat-status" id="chat-hdr-status">çevrimiçi</div>
+        </div>
+        <div class="header-actions">
+          <button class="icon-btn" onclick="clearCurrentChat()" title="Sohbeti temizle">
+            <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+          </button>
+          <button class="icon-btn" onclick="closeMobileChat()" id="back-btn" style="display:none">
+            <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+          </button>
+        </div>
+      </div>
+      <div id="messages-area"></div>
+      <div id="img-preview-bar">
+        <img id="img-preview-thumb" src="" alt="">
+        <span style="font-size:.85rem;color:var(--text-secondary);flex:1">Fotoğraf gönderilecek</span>
+        <button class="cancel-img" onclick="cancelImage()">✕</button>
+      </div>
+      <div id="msg-input-area">
+        <div id="msg-input-wrap">
+          <button id="img-btn" onclick="document.getElementById('file-input').click()" title="Fotoğraf gönder">
+            <svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+          </button>
+          <input type="file" id="file-input" accept="image/*" onchange="previewImage(event)">
+          <textarea id="msg-input" rows="1" placeholder="Mesaj yaz..."></textarea>
+        </div>
+        <button id="send-btn" onclick="sendMessage()">
+          <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- YENİ SOHBET -->
+<div id="new-chat-modal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>💬 Yeni Sohbet</h2>
+      <button class="close-btn" onclick="closeNewChatModal()">✕</button>
+    </div>
+    <p>Sohbet başlatmak istediğin kişinin 4 haneli numarasını gir.</p>
+    <input type="number" id="new-number" placeholder="----" min="1000" max="9999" inputmode="numeric">
+    <div id="new-chat-error"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeNewChatModal()">İptal</button>
+      <button class="btn-start" onclick="startNewChat()">Sohbet Başlat →</button>
+    </div>
+  </div>
+</div>
+
+<!-- AYARLAR -->
+<div id="settings-modal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>⚙️ Ayarlar</h2>
+      <button class="close-btn" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="settings-section">
+      <div class="settings-label">Görünüm</div>
+      <div class="settings-row">
+        <div class="settings-row-left">
+          <span class="settings-row-title">🌙 Karanlık Mod</span>
+          <span class="settings-row-sub">Aydınlık / Karanlık tema</span>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="dark-toggle" onchange="toggleTheme(this.checked)">
+          <span class="toggle-track"></span><span class="toggle-thumb"></span>
+        </label>
+      </div>
+      <div class="settings-row">
+        <div class="settings-row-left">
+          <span class="settings-row-title">✨ Animasyonlar</span>
+          <span class="settings-row-sub">Geçiş efektleri</span>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="anim-toggle" checked onchange="toggleAnimations(this.checked)">
+          <span class="toggle-track"></span><span class="toggle-thumb"></span>
+        </label>
+      </div>
+      <div class="settings-row">
+        <div class="settings-row-left">
+          <span class="settings-row-title">🔔 Bildirimler</span>
+          <span class="settings-row-sub" id="notif-sub">Yeni mesaj bildirimleri</span>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="notif-toggle" onchange="toggleNotifications(this.checked)">
+          <span class="toggle-track"></span><span class="toggle-thumb"></span>
+        </label>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-label">Hesap</div>
+      <div class="settings-row">
+        <div class="settings-row-left">
+          <span class="settings-row-title">📱 Numaran</span>
+          <span class="settings-row-sub" id="current-num-label">----</span>
+        </div>
+      </div>
+      <button class="danger-btn" onclick="changeNumber()">🔄 Numarayı Değiştir (Çıkış Yap)</button>
+    </div>
+  </div>
+</div>
+
+<!-- LİGHTBOX -->
+<div id="lightbox" onclick="this.classList.remove('open')">
+  <img id="lightbox-img" src="" alt="">
+</div>
+
+<!-- TOAST BİLDİRİM KAPSAYICISI -->
+<div id="toast-container"></div>
+
+<script>
+// ═══════════════════════════════
+//  STATE
+// ═══════════════════════════════
+let myId          = null;
+let myPass        = null;
+let currentChat   = null;
+let animEnabled   = true;
+let notifEnabled  = false;
+let pendingImage  = null;
+let msgHash       = '';
+let sseSource     = null;
+
+// ═══════════════════════════════
+//  COOKIE
+// ═══════════════════════════════
+const Cookie = {
+  set(k,v,days=365){ const e=new Date(Date.now()+days*864e5).toUTCString(); document.cookie=`${k}=${encodeURIComponent(v)};expires=${e};path=/;SameSite=Lax` },
+  get(k){ const m=document.cookie.match('(?:^|; )'+k+'=([^;]*)'); return m?decodeURIComponent(m[1]):null },
+  del(k){ document.cookie=`${k}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/` }
+};
+
+// ═══════════════════════════════
+//  API
+// ═══════════════════════════════
+async function api(method, path, body){
+  const opts={method,headers:{'Content-Type':'application/json'}};
+  if(body) opts.body=JSON.stringify(body);
+  const res=await fetch('/api'+path, opts);
+  if(!res.ok){ const e=await res.json().catch(()=>({})); throw new Error(e.error||res.statusText); }
+  return res.json();
+}
+
+// ═══════════════════════════════
+//  INIT
+// ═══════════════════════════════
+(async function init(){
+  document.getElementById('msg-input').addEventListener('keydown', e=>{
+    if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendMessage(); }
+  });
+  document.getElementById('msg-input').addEventListener('input', autoResize);
+  document.getElementById('new-number').addEventListener('keydown', e=>{
+    if(e.key==='Enter') startNewChat();
+    if(e.key==='Escape') closeNewChatModal();
+  });
+  document.getElementById('login-input').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+  document.getElementById('new-chat-modal').addEventListener('click', function(e){ if(e.target===this) closeNewChatModal(); });
+  document.getElementById('settings-modal').addEventListener('click',  function(e){ if(e.target===this) closeSettings(); });
+  handleMobileLayout();
+  window.addEventListener('resize', handleMobileLayout);
+  applySettings();
+
+  // Cookie'den giriş bilgisi oku
+  const savedId   = Cookie.get('cc_myId');
+  const savedPass = Cookie.get('cc_pass');
+  if(savedId && savedPass){
+    // Sunucuya doğrula
+    try {
+      await api('POST', '/verify', { id: savedId, password: savedPass });
+      myId   = savedId;
+      myPass = savedPass;
+      await showApp();
+    } catch {
+      // Geçersiz → cookie temizle, giriş ekranı göster
+      Cookie.del('cc_myId');
+      Cookie.del('cc_pass');
+    }
+  }
+})();
+
+function handleMobileLayout(){
+  document.getElementById('back-btn').style.display=window.innerWidth<=700?'flex':'none';
+}
+function autoResize(){
+  const ta=document.getElementById('msg-input');
+  ta.style.height='auto';
+  ta.style.height=Math.min(ta.scrollHeight,120)+'px';
+}
+function applySettings(){
+  const theme=Cookie.get('cc_theme')||'light';
+  const anim=Cookie.get('cc_anim')!=='false';
+  const notif=Cookie.get('cc_notif')==='true';
+  document.documentElement.setAttribute('data-theme',theme);
+  animEnabled=anim;
+  notifEnabled=notif;
+  document.body.classList.toggle('no-anim',!anim);
+  document.getElementById('dark-toggle').checked=(theme==='dark');
+  document.getElementById('anim-toggle').checked=anim;
+  document.getElementById('notif-toggle').checked=notif;
+  updateNotifSubtext();
+}
+
+// ═══════════════════════════════
+//  LOGIN
+// ═══════════════════════════════
+async function doLogin(){
+  const val=document.getElementById('login-input').value.trim();
+  if(!/^\d{4}$/.test(val)){ shake(); return; }
+  setLoginLoading(true);
+  try {
+    const res=await api('POST','/register',{id:val});
+    myId   = val;
+    myPass = res.password;
+    Cookie.set('cc_myId',  myId);
+    Cookie.set('cc_pass',  myPass);
+    await showApp();
+  } catch(err){
+    document.getElementById('login-error').textContent='❌ '+err.message;
+    setTimeout(()=>document.getElementById('login-error').textContent='',3000);
+    shake();
+  } finally { setLoginLoading(false); }
+}
+function setLoginLoading(on){
+  const btn=document.getElementById('login-btn');
+  btn.disabled=on;
+  btn.innerHTML=on?'<span class="spinner"></span>':'Giriş Yap →';
+}
+function shake(){
+  const c=document.querySelector('.login-card');
+  c.style.animation='none';
+  requestAnimationFrame(()=>{ c.style.animation='shk .4s ease'; });
+}
+
+async function showApp(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').classList.add('visible');
+  document.getElementById('my-avatar').textContent=myId.slice(-2);
+  document.getElementById('current-num-label').textContent=myId;
+  await renderChatList();
+  connectSSE();
+}
+
+// ═══════════════════════════════
+//  SSE — gerçek zamanlı güncelleme
+// ═══════════════════════════════
+function connectSSE(){
+  if(sseSource) sseSource.close();
+  sseSource=new EventSource(`/api/events/${myId}?password=${encodeURIComponent(myPass)}`);
+
+  sseSource.addEventListener('messages', async e=>{
+    const data=JSON.parse(e.data);
+    if(currentChat){
+      if(data.hash!==msgHash){
+        msgHash=data.hash;
+        renderMessagesFromData(data.msgs, false);
+        await api('PATCH',`/messages/${myId}/${currentChat}/read`,{reader:myId}).catch(()=>{});
+      }
+    }
+    // Bildirim: sadece aktif sohbet değilse ve yeni mesaj bizden değilse
+    const lastMsg = data.msgs[data.msgs.length-1];
+    if(lastMsg && lastMsg.from !== myId){
+      const isActiveChat = currentChat === lastMsg.from || currentChat === (lastMsg.from===data.msgs[0]?.from ? myId : lastMsg.from);
+      const chatWith = lastMsg.from;
+      // Aktif sohbet değil veya sayfa odakta değil
+      if(!document.hasFocus() || currentChat !== chatWith){
+        sendNotification(chatWith, lastMsg);
+      }
+    }
+    await renderChatList(document.getElementById('search-input').value);
+  });
+
+  sseSource.addEventListener('chats', async ()=>{
+    await renderChatList(document.getElementById('search-input').value);
+  });
+
+  sseSource.onerror=()=>{
+    // Bağlantı kesilince 3 saniye sonra yeniden bağlan
+    sseSource.close();
+    setTimeout(connectSSE, 3000);
+  };
+}
+
+// ═══════════════════════════════
+//  CHAT LIST
+// ═══════════════════════════════
+let _renderChatLock = false;
+async function renderChatList(filter=''){
+  if(_renderChatLock) return;
+  _renderChatLock = true;
+  try { await _renderChatList(filter); } finally { _renderChatLock=false; }
+}
+async function _renderChatList(filter=''){
+  const list=document.getElementById('chat-list');
+  let chats=[];
+  try { chats=await api('GET',`/chats/${myId}`); } catch { return; }
+
+  const filtered=chats.filter(id=>id.includes(filter||''));
+  document.getElementById('empty-state').style.display=filtered.length?'none':'block';
+  [...list.querySelectorAll('.chat-item')].forEach(el=>el.remove());
+
+  for(const otherId of filtered){
+    let msgs=[];
+    try { const r=await api('GET',`/messages/${myId}/${otherId}`); msgs=r.msgs; } catch {}
+    const last  =msgs[msgs.length-1];
+    const unread=msgs.filter(m=>m.from!==myId&&!m.read).length;
+
+    let previewHtml='';
+    if(last){
+      if(last.from===myId){
+        previewHtml+=last.read
+          ?`<span class="tick read">${TICK2_BLUE}</span>`
+          :`<span class="tick sent">${TICK1_GRAY}</span>`;
+      }
+      previewHtml+=last.type==='image'
+        ?`<span>📷 Fotoğraf</span>`
+        :`<span>${escHtml((last.text||'').substring(0,40))}</span>`;
+    } else {
+      previewHtml='<span>Sohbet başlat</span>';
+    }
+
+    const item=document.createElement('div');
+    item.className='chat-item'+(currentChat===otherId?' active':'');
+    item.onclick=()=>openChat(otherId);
+    item.innerHTML=`
+      <div class="chat-avatar" style="background:${idToColor(otherId)}">${otherId.slice(-2)}</div>
+      <div class="chat-info">
+        <div class="chat-name">${otherId}</div>
+        <div class="chat-preview">${previewHtml}</div>
+      </div>
+      <div class="chat-meta">
+        <div class="chat-time">${last?formatTime(last.ts):''}</div>
+        ${unread>0?`<div class="unread-badge">${unread}</div>`:''}
+      </div>`;
+    list.appendChild(item);
+  }
+}
+
+function filterChats(){ renderChatList(document.getElementById('search-input').value); }
+
+// TİK SVG
+const TICK1_GRAY=`<svg viewBox="0 0 16 15"><path d="M10.91 3.316l-.478-.372a.365.365 0 00-.51.063L4.566 9.879a.32.32 0 01-.484.033L1.891 7.769a.366.366 0 00-.515.006l-.423.433a.364.364 0 00.006.514l3.258 3.185c.143.14.361.125.484-.033l6.272-8.048a.365.365 0 00-.063-.51z"/></svg>`;
+const TICK2_BLUE=`<svg viewBox="0 0 16 15"><path d="M15.01 3.316l-.478-.372a.365.365 0 00-.51.063L8.666 9.879a.32.32 0 01-.484.033l-.358-.325a.319.319 0 00-.484.032l-.378.483a.418.418 0 00.036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 00-.064-.512zm-4.1 0l-.478-.372a.365.365 0 00-.51.063L4.566 9.879a.32.32 0 01-.484.033L1.891 7.769a.366.366 0 00-.515.006l-.423.433a.364.364 0 00.006.514l3.258 3.185c.143.14.361.125.484-.033l6.272-8.048a.365.365 0 00-.063-.51z"/></svg>`;
+
+// ═══════════════════════════════
+//  NEW CHAT MODAL
+// ═══════════════════════════════
+function openNewChatModal(){
+  document.getElementById('new-chat-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('new-number').focus(),100);
+}
+function closeNewChatModal(){
+  document.getElementById('new-chat-modal').classList.remove('open');
+  document.getElementById('new-number').value='';
+  document.getElementById('new-number').style.borderColor='';
+  document.getElementById('new-chat-error').textContent='';
+}
+function showNewChatErr(msg){
+  document.getElementById('new-chat-error').textContent=msg;
+  document.getElementById('new-number').style.borderColor='#ff3b30';
+  setTimeout(()=>{ document.getElementById('new-chat-error').textContent=''; document.getElementById('new-number').style.borderColor=''; },2500);
+}
+async function startNewChat(){
+  const val=document.getElementById('new-number').value.trim();
+  if(!/^\d{4}$/.test(val)){ showNewChatErr('Lütfen 4 haneli bir numara gir!'); return; }
+  if(val===myId){ showNewChatErr('Kendi numaranla sohbet başlatamazsın!'); return; }
+  try {
+    const chats=await api('GET',`/chats/${myId}`);
+    if(!chats.includes(val)) await api('POST',`/chats/${myId}`,{otherId:val});
+    closeNewChatModal();
+    await renderChatList();
+    openChat(val);
+  } catch(err){ showNewChatErr(err.message); }
+}
+
+// ═══════════════════════════════
+//  OPEN / CLOSE CHAT
+// ═══════════════════════════════
+async function openChat(otherId){
+  currentChat=otherId; msgHash='';
+  try { await api('PATCH',`/messages/${myId}/${otherId}/read`,{reader:myId}); } catch {}
+
+  document.getElementById('welcome-screen').style.display='none';
+  document.getElementById('active-chat').style.display='flex';
+  document.getElementById('chat-hdr-avatar').textContent=otherId.slice(-2);
+  document.getElementById('chat-hdr-avatar').style.background=idToColor(otherId);
+  document.getElementById('chat-hdr-name').textContent=otherId;
+  document.getElementById('chat-hdr-status').textContent='çevrimiçi';
+
+  let msgs=[];
+  try { const r=await api('GET',`/messages/${myId}/${otherId}`); msgs=r.msgs; msgHash=r.hash; } catch {}
+  renderMessagesFromData(msgs, true);
+
+  await renderChatList(document.getElementById('search-input').value);
+  if(window.innerWidth<=700) document.getElementById('main-chat').classList.add('mobile-visible');
+  document.getElementById('msg-input').focus();
+}
+
+function closeMobileChat(){
+  document.getElementById('main-chat').classList.remove('mobile-visible');
+  currentChat=null; msgHash='';
+  document.getElementById('active-chat').style.display='none';
+  document.getElementById('welcome-screen').style.display='flex';
+}
+
+// ═══════════════════════════════
+//  MESSAGES RENDER
+// ═══════════════════════════════
+function renderMessagesFromData(msgs, scrollToBottom){
+  const area=document.getElementById('messages-area');
+  const wasAtBottom=area.scrollHeight-area.clientHeight-area.scrollTop<80;
+  area.innerHTML='';
+  let lastDate=null;
+  msgs.forEach(msg=>{
+    const date=new Date(msg.ts).toLocaleDateString('tr-TR',{day:'2-digit',month:'long',year:'numeric'});
+    if(date!==lastDate){
+      const d=document.createElement('div');
+      d.className='date-divider'; d.textContent=date;
+      area.appendChild(d); lastDate=date;
+    }
+    area.appendChild(buildBubble(msg));
+  });
+  if(scrollToBottom||wasAtBottom)
+    requestAnimationFrame(()=>{ area.scrollTop=area.scrollHeight; });
+}
+
+function buildBubble(msg){
+  const isOut=msg.from===myId;
+  const b=document.createElement('div');
+  b.className=`msg-bubble ${isOut?'msg-out':'msg-in'}${animEnabled?' animated fade-in':''}`;
+  const content=msg.type==='image'
+    ?`<img class="msg-img" src="${msg.imageUrl}" alt="Fotoğraf" onclick="openLightbox('${msg.imageUrl}')">`
+    :`<div class="msg-text">${escHtml(msg.text||'')}</div>`;
+  const tik=isOut
+    ?(msg.read?`<span class="tick read">${TICK2_BLUE}</span>`:`<span class="tick sent">${TICK1_GRAY}</span>`)
+    :'';
+  b.innerHTML=`${content}<div class="msg-footer"><span class="msg-time">${formatTime(msg.ts)}</span>${tik}</div>`;
+  return b;
+}
+
+// ═══════════════════════════════
+//  SEND
+// ═══════════════════════════════
+async function sendMessage(){
+  if(!currentChat) return;
+  const input=document.getElementById('msg-input');
+  const text=input.value.trim();
+  if(!text&&!pendingImage) return;
+
+  input.value=''; input.style.height='auto';
+  document.getElementById('send-btn').disabled=true;
+  try {
+    if(pendingImage){
+      const {url}=await api('POST','/upload',{data:pendingImage.data,mime:pendingImage.mime});
+      await api('POST',`/messages/${myId}/${currentChat}`,{from:myId,type:'image',imageUrl:url});
+      cancelImage();
+    }
+    if(text) await api('POST',`/messages/${myId}/${currentChat}`,{from:myId,type:'text',text});
+    await api('POST',`/chats/${myId}`,{otherId:currentChat});
+  } catch(err){ input.value=text; console.error(err); }
+  finally { document.getElementById('send-btn').disabled=false; input.focus(); }
+}
+
+async function clearCurrentChat(){
+  if(!currentChat) return;
+  if(!confirm(`${currentChat} ile olan sohbet silinsin mi?`)) return;
+  await api('DELETE',`/messages/${myId}/${currentChat}`).catch(()=>{});
+}
+
+// ═══════════════════════════════
+//  GÖRSEL
+// ═══════════════════════════════
+function previewImage(e){
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const base64=ev.target.result.split(',')[1];
+    const mime=file.type||'image/jpeg';
+    if(pendingImage) URL.revokeObjectURL(pendingImage.objectUrl);
+    const objectUrl=URL.createObjectURL(file);
+    pendingImage={data:base64,mime,objectUrl};
+    document.getElementById('img-preview-thumb').src=objectUrl;
+    document.getElementById('img-preview-bar').style.display='flex';
+  };
+  reader.readAsDataURL(file);
+  e.target.value='';
+}
+function cancelImage(){
+  if(pendingImage){ URL.revokeObjectURL(pendingImage.objectUrl); pendingImage=null; }
+  document.getElementById('img-preview-bar').style.display='none';
+  document.getElementById('img-preview-thumb').src='';
+}
+function openLightbox(src){
+  document.getElementById('lightbox-img').src=src;
+  document.getElementById('lightbox').classList.add('open');
+}
+
+function openSettings() { document.getElementById('settings-modal').classList.add('open'); }
+function closeSettings(){ document.getElementById('settings-modal').classList.remove('open'); }
+function toggleTheme(isDark){
+  const t=isDark?'dark':'light';
+  document.documentElement.setAttribute('data-theme',t);
+  Cookie.set('cc_theme',t);
+}
+function toggleAnimations(enabled){
+  animEnabled=enabled;
+  document.body.classList.toggle('no-anim',!enabled);
+  Cookie.set('cc_anim',String(enabled));
+}
+
+// ── Bildirimler ────────────────────────────────────────────
+
+// Safari/iOS tespiti
+const isIOS     = /iP(hone|ad|od)/.test(navigator.userAgent);
+const isSafari  = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+// iOS Safari hiç native bildirim desteklemez (PWA hariç)
+// PWA olarak çalışıp çalışmadığını kontrol et
+const isPWA     = window.navigator.standalone === true ||
+                  window.matchMedia('(display-mode: standalone)').matches;
+// Native bildirim kullanılabilir mi?
+function canNativeNotif(){
+  if(!('Notification' in window)) return false;
+  if(isIOS && !isPWA) return false;   // iOS tarayıcı → hayır
+  return true;
+}
+
+function updateNotifSubtext(){
+  const el = document.getElementById('notif-sub');
+  if(!notifEnabled){ el.textContent = 'Kapalı'; return; }
+  if(isIOS && !isPWA){
+    el.textContent = 'Uygulama içi bildirim (iOS Safari)';
+    return;
+  }
+  if(!canNativeNotif()){
+    el.textContent = 'Uygulama içi bildirim aktif';
+    return;
+  }
+  if(Notification.permission === 'denied'){
+    el.textContent = 'Sistem bildirimleri engellendi — uygulama içi aktif';
+    return;
+  }
+  el.textContent = Notification.permission === 'granted'
+    ? 'Sistem + uygulama içi bildirimler açık'
+    : 'Uygulama içi bildirim aktif';
+}
+
+async function toggleNotifications(enabled){
+  if(enabled){
+    notifEnabled = true;
+    Cookie.set('cc_notif','true');
+    // Native izin iste (iOS PWA veya diğer tarayıcılar)
+    if(canNativeNotif() && Notification.permission === 'default'){
+      await Notification.requestPermission().catch(()=>{});
+    }
+  } else {
+    notifEnabled = false;
+    Cookie.set('cc_notif','false');
+  }
+  updateNotifSubtext();
+}
+
+// Toast göster (her ortamda çalışır)
+function showToast(fromId, msg){
+  const body = msg.type==='image' ? '📷 Fotoğraf gönderdi' : (msg.text||'').substring(0,60);
+  const container = document.getElementById('toast-container');
+
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = `
+    <div class="toast-avatar" style="background:${idToColor(fromId)}">${fromId.slice(-2)}</div>
+    <div class="toast-body">
+      <div class="toast-title">🐥 ${fromId}</div>
+      <div class="toast-text">${escHtml(body)}</div>
+    </div>
+    <button class="toast-close" onclick="dismissToast(this.parentElement)">✕</button>`;
+  toast.addEventListener('click', e => {
+    if(e.target.classList.contains('toast-close')) return;
+    dismissToast(toast);
+    openChat(fromId);
+  });
+  container.prepend(toast);
+
+  // 4.5 saniye sonra otomatik kapat
+  const timer = setTimeout(() => dismissToast(toast), 4500);
+  toast._timer = timer;
+}
+
+function dismissToast(toast){
+  if(!toast || toast._dismissed) return;
+  toast._dismissed = true;
+  clearTimeout(toast._timer);
+  toast.classList.add('hiding');
+  setTimeout(() => toast.remove(), 280);
+}
+
+// Ana bildirim gönderici
+function sendNotification(fromId, msg){
+  if(!notifEnabled) return;
+
+  // Sayfa odakta ve o sohbet açık → hiç bildirim gösterme
+  if(document.hasFocus() && currentChat === fromId) return;
+
+  // Native bildirim: sayfa arka planda, izin verilmiş, destekleniyor
+  if(canNativeNotif() && Notification.permission === 'granted' && !document.hasFocus()){
+    const body = msg.type==='image' ? '📷 Fotoğraf gönderdi' : (msg.text||'').substring(0,80);
+    try {
+      const n = new Notification(`🐥 ${fromId} — ChickChat`, {
+        body,
+        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72"><circle cx="36" cy="36" r="36" fill="%23128c7e"/><text x="36" y="48" font-size="38" text-anchor="middle">🐥</text></svg>',
+        tag:      `cc-${fromId}`,
+        renotify: true,
+        silent:   false
+      });
+      n.onclick = () => { window.focus(); openChat(fromId); n.close(); };
+      setTimeout(() => n.close(), 5000);
+    } catch(e) {
+      // Native başarısız → toast'a düş
+      showToast(fromId, msg);
+    }
+    return;
+  }
+
+  // Geri kalan tüm durumlarda (iOS Safari, sayfa açık, izin yok) → toast
+  showToast(fromId, msg);
+}
+async function changeNumber(){
+  if(!confirm('Numaranı sıfırlayıp giriş ekranına dönmek istiyor musun?')) return;
+  await api('DELETE',`/register/${myId}`,{password:myPass}).catch(()=>{});
+  if(sseSource){ sseSource.close(); sseSource=null; }
+  Cookie.del('cc_myId'); Cookie.del('cc_pass');
+  myId=null; myPass=null; currentChat=null; msgHash='';
+  closeSettings();
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('active-chat').style.display='none';
+  document.getElementById('welcome-screen').style.display='flex';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('login-input').value='';
+}
+
+// ═══════════════════════════════
+//  UTILS
+// ═══════════════════════════════
+function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+function formatTime(ts){ return new Date(ts).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}); }
+function idToColor(id){
+  const c=['linear-gradient(135deg,#f093fb,#f5576c)','linear-gradient(135deg,#4facfe,#00f2fe)','linear-gradient(135deg,#43e97b,#38f9d7)','linear-gradient(135deg,#fa709a,#fee140)','linear-gradient(135deg,#a18cd1,#fbc2eb)','linear-gradient(135deg,#fccb90,#d57eeb)','linear-gradient(135deg,#a1c4fd,#c2e9fb)','linear-gradient(135deg,#667eea,#764ba2)'];
+  return c[parseInt(id,10)%c.length];
+}
+</script>
+</body>
+</html>
