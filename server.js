@@ -16,6 +16,9 @@ const PUBLIC_DIR = path.join(__dirname, 'public');
 app.use(express.json({ limit: '20mb' }));
 app.use(express.static(PUBLIC_DIR));
 app.use('/uploads', express.static(IMG_DIR));
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // ── SSE bağlantı havuzu: { userId: [res, res, ...] } ──────
 const sseClients = {};
